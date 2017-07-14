@@ -13,25 +13,25 @@ namespace AntiDos
     [ApiVersion(2, 1)]
     public sealed class AntiDos : TerrariaPlugin
     {
+        #region Information
         public override string Name => GetType().Name;
 
         public override string Author => "MistZZT";
 
         public override Version Version => GetType().Assembly.GetName().Version;
 
-        private Hooks.Net.Socket.AcceptedHandler _accepted;
-
-        private static readonly Dictionary<string, DateTime> Ips = new Dictionary<string, DateTime>();
-
-        private static readonly List<string> BannedIp;
-
-        static AntiDos()
-        {
-            BannedIp = Load();
-        }
-
         public AntiDos(Main game) : base(game)
         {
+        }
+        #endregion
+        
+        private Hooks.Net.Socket.AcceptedHandler _accepted;
+        private static readonly AddressChecker Checker;
+        
+        static AntiDos()
+        {
+            Checker = new AddressChecker("doslist.txt");
+            Checker.ChangeIpList(Load());
         }
 
         public override void Initialize()
@@ -53,54 +53,22 @@ namespace AntiDos
 
         private static void ReloadAntiDos(CommandArgs args)
         {
-            BannedIp.Clear();
-            BannedIp.AddRange(Load());
+            Checker.ChangeIpList(Load());
         }
 
         private HookResult OnAccepted(ISocket socket)
         {
             var address = socket.GetRemoteAddress() as TcpAddress;
-
             if (address == null)
             {
                 return _accepted(socket);
             }
 
-            var ip = string.Intern(address.Address.ToString());
-            if (BannedIp.Contains(ip))
-            {
-                return HookResult.Cancel;
-            }
-
-            var now = DateTime.Now;
-            if (Ips.TryGetValue(ip, out DateTime time) && (now - time).Seconds < 1)
-            {
-                Add(ip);
-                return HookResult.Cancel;
-            }
-            Ips[ip] = DateTime.Now;
-
-
-            return _accepted(socket);
+            var addressString = address.Address.ToString();
+            return Checker.Check(addressString) ? _accepted(socket) : HookResult.Cancel;
         }
 
-        private static void Add(string ip)
-        {
-            try
-            {
-                File.AppendAllText("doslist.txt", ip + Environment.NewLine);
-            }
-            catch
-            {
-                // ignored
-            }
-
-            BannedIp.Add(ip);
-
-            Console.WriteLine($"Banned: {ip}");
-        }
-
-        private static List<string> Load()
+        private static IEnumerable<string> Load()
         {
             var list = new List<string>();
 
@@ -122,7 +90,6 @@ namespace AntiDos
             }
 
             Console.WriteLine("Banned IPs Loaded: {0}", list.Count);
-
             return list;
         }
     }
