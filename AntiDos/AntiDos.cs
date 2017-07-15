@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using OTAPI;
 using Terraria;
 using Terraria.Net;
-using Terraria.Net.Sockets;
+using System.Net.Sockets;
 using TerrariaApi.Server;
 using TShockAPI;
 
@@ -25,7 +26,6 @@ namespace AntiDos
         }
         #endregion
         
-        private Hooks.Net.Socket.AcceptedHandler _accepted;
         private static readonly AddressChecker Checker;
         
         static AntiDos()
@@ -36,8 +36,7 @@ namespace AntiDos
 
         public override void Initialize()
         {
-            _accepted = Hooks.Net.Socket.Accepted;
-            Hooks.Net.Socket.Accepted = OnAccepted;
+            AntiDosHooks.Accepted = OnAccepted;
 
             Commands.ChatCommands.Add(new Command("antidos.reload", ReloadAntiDos, "adreload"));
         }
@@ -46,7 +45,6 @@ namespace AntiDos
         {
             if (disposing)
             {
-                Hooks.Net.Socket.Accepted = _accepted;
             }
             base.Dispose(disposing);
         }
@@ -56,16 +54,16 @@ namespace AntiDos
             Checker.ChangeIpList(Load());
         }
 
-        private HookResult OnAccepted(ISocket socket)
+        private static HookResult OnAccepted(TcpClient client)
         {
-            var address = socket.GetRemoteAddress() as TcpAddress;
-            if (address == null)
-            {
-                return _accepted(socket);
-            }
-
+            var address = (IPEndPoint) client.Client.RemoteEndPoint;
             var addressString = address.Address.ToString();
-            return Checker.Check(addressString) ? _accepted(socket) : HookResult.Cancel;
+
+            var status = Checker.Check(addressString);
+            
+            Console.WriteLine((status ? "连接：" : "拦截：") + addressString);
+            
+            return status ? HookResult.Continue : HookResult.Cancel;
         }
 
         private static IEnumerable<string> Load()

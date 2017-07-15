@@ -17,11 +17,11 @@ namespace AntiDos
 
         private const double T1Threshold = 1;
 
-        private const double T2Threshold = 60;
+        private const double T2Threshold = 10;
 
-        private const double T3Threshold = 180;
+        private const double T3Threshold = 60;
 
-        private const int T1Times = 2, T2Times = 10, T3Times = 20;
+        private const int T1Times = 2, T2Times = 5, T3Times = 10;
         
         public AddressChecker(string fileName)
         {
