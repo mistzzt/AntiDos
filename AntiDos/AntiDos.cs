@@ -4,8 +4,8 @@ using System.IO;
 using System.Net;
 using OTAPI;
 using Terraria;
-using Terraria.Net;
 using System.Net.Sockets;
+using AntiDos.Sockets;
 using TerrariaApi.Server;
 using TShockAPI;
 
@@ -23,6 +23,7 @@ namespace AntiDos
 
         public AntiDos(Main game) : base(game)
         {
+            Order = 10;
         }
         #endregion
         
@@ -36,8 +37,8 @@ namespace AntiDos
 
         public override void Initialize()
         {
-            AntiDosHooks.Accepted = OnAccepted;
-
+            Hooks.Net.Socket.Create = () => new AntiDosLinuxTcpSocket();
+            
             Commands.ChatCommands.Add(new Command("antidos.reload", ReloadAntiDos, "adreload"));
         }
 
@@ -54,7 +55,7 @@ namespace AntiDos
             Checker.ChangeIpList(Load());
         }
 
-        private static HookResult OnAccepted(TcpClient client)
+        internal static bool CanAccept(TcpClient client)
         {
             var address = (IPEndPoint) client.Client.RemoteEndPoint;
             var addressString = address.Address.ToString();
@@ -62,8 +63,8 @@ namespace AntiDos
             var status = Checker.Check(addressString);
             
             Console.WriteLine((status ? "连接：" : "拦截：") + addressString);
-            
-            return status ? HookResult.Continue : HookResult.Cancel;
+
+            return status;
         }
 
         private static IEnumerable<string> Load()
