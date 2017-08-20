@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using OTAPI;
 using Terraria;
@@ -15,6 +16,7 @@ namespace AntiDos
     public sealed class AntiDos : TerrariaPlugin
     {
         #region Information
+
         public override string Name => GetType().Name;
 
         public override string Author => "MistZZT";
@@ -25,20 +27,23 @@ namespace AntiDos
         {
             Order = 10;
         }
+
         #endregion
-        
+
+        public const string FilePath = "doslist.txt";
+
         private static readonly AddressChecker Checker;
-        
+
         static AntiDos()
         {
-            Checker = new AddressChecker("doslist.txt");
+            Checker = new AddressChecker(FilePath);
             Checker.ChangeIpList(Load());
         }
 
         public override void Initialize()
         {
             Hooks.Net.Socket.Create = () => new AntiDosLinuxTcpSocket();
-            
+
             Commands.ChatCommands.Add(new Command("antidos.reload", ReloadAntiDos, "adreload"));
         }
 
@@ -61,7 +66,7 @@ namespace AntiDos
             var addressString = address.Address.ToString();
 
             var status = Checker.Check(addressString);
-            
+
             Console.WriteLine((status ? "连接：" : "拦截：") + addressString);
 
             return status;
@@ -73,13 +78,14 @@ namespace AntiDos
 
             try
             {
-                var file = new FileStream("doslist.txt", FileMode.OpenOrCreate);
+                var file = new FileStream(FilePath, FileMode.OpenOrCreate);
                 using (var reader = new StreamReader(file))
                 {
-                    string r;
-                    while (!string.IsNullOrWhiteSpace(r = reader.ReadLine()))
+                    while (!reader.EndOfStream)
                     {
-                        list.Add(r);
+                        var r = reader.ReadLine();
+                        if (!string.IsNullOrWhiteSpace(r))
+                            list.Add(r);
                     }
                 }
             }
@@ -88,8 +94,8 @@ namespace AntiDos
                 // ignored
             }
 
-            Console.WriteLine("Banned IPs Loaded: {0}", list.Count);
-            return list;
+            Console.WriteLine("[AntiDos] {0, 5} IPs Loaded.", list.Count);
+            return list.Distinct();
         }
     }
 }

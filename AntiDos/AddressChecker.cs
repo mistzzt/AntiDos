@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 
 namespace AntiDos
 {
@@ -84,9 +83,8 @@ namespace AntiDos
         {
             _bannedIp.Add(ip);
             
-            File.AppendAllText(_fileName, ip + Environment.NewLine);
-            
-            Console.WriteLine("IP banned: " + ip);
+            File.AppendAllText(_fileName, ip + Environment.NewLine);           
+            TShockAPI.TShock.Log.ConsoleInfo("IP banned: " + ip);
         }
 
         private struct Record
