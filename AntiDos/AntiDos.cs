@@ -62,12 +62,10 @@ namespace AntiDos
 
         internal static bool CanAccept(TcpClient client)
         {
-            var address = (IPEndPoint) client.Client.RemoteEndPoint;
-            var addressString = address.Address.ToString();
+            var address = ((IPEndPoint) client.Client.RemoteEndPoint).Address;
 
-            var status = Checker.Check(addressString);
-
-            Console.WriteLine((status ? "连接：" : "拦截：") + addressString);
+            var status = Checker.Check(address);
+            Console.WriteLine((status ? "连接：" : "拦截：") + address);
 
             return status;
         }
