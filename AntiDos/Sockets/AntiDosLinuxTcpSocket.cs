@@ -120,8 +120,7 @@ namespace AntiDos.Sockets
         bool ISocket.StartListening(SocketConnectionAccepted callback)
         {
             var any = IPAddress.Any;
-            string ipString;
-            if (Program.LaunchParameters.TryGetValue("-ip", out ipString) && !IPAddress.TryParse(ipString, out any))
+            if (Program.LaunchParameters.TryGetValue("-ip", out var ipString) && !IPAddress.TryParse(ipString, out any))
             {
                 any = IPAddress.Any;
             }

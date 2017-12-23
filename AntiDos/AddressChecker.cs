@@ -17,7 +17,7 @@ namespace AntiDos
 
         private const double T1Threshold = 1;
 
-        private const double T2Threshold = 10;
+        private const double T2Threshold = 20;
 
         private const double T3Threshold = 60;
 

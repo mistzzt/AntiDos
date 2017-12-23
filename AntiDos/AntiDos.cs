@@ -92,7 +92,7 @@ namespace AntiDos
                 // ignored
             }
 
-            Console.WriteLine("[AntiDos] {0, 5} IPs Loaded.", list.Count);
+            TShock.Log.ConsoleInfo("[AntiDos] {0, 5} IPs Loaded.", list.Count);
             return list.Distinct();
         }
     }
